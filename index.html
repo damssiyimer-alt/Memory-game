@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🧠 5x5 Memory · Bonus Points</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: linear-gradient(145deg, #0b1a2e, #1a2f4a);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+      padding: 12px;
+      touch-action: manipulation;
+    }
+    .game-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 780px;
+    }
+    .game-box {
+      background: rgba(255, 240, 210, 0.12);
+      backdrop-filter: blur(6px);
+      border-radius: 60px 60px 40px 40px;
+      padding: 20px 16px 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 0 2px rgba(255, 220, 150, 0.15);
+      width: 100%;
+      transition: 0.2s;
+      border: 1px solid rgba(255, 215, 150, 0.15);
+    }
+    .credit {
+      font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+      font-size: 1.0rem;
+      font-style: italic;
+      color: #ffd6a8;
+      text-shadow: 0 2px 8px rgba(255, 180, 100, 0.2), 0 0 20px rgba(255, 150, 80, 0.1);
+      letter-spacing: 1px;
+      padding: 6px 18px;
+      background: rgba(255, 200, 150, 0.08);
+      border-radius: 60px;
+      border: 1px solid rgba(255, 200, 150, 0.15);
+      backdrop-filter: blur(4px);
+      display: inline-block;
+      transition: 0.3s;
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+    .credit:hover {
+      background: rgba(255, 200, 150, 0.15);
+      border-color: rgba(255, 200, 150, 0.3);
+      transform: scale(1.02);
+    }
+    .credit .heart {
+      display: inline-block;
+      animation: heart-beat 1.2s ease-in-out infinite;
+    }
+    @keyframes glow-pulse {
+      0%, 100% { text-shadow: 0 2px 8px rgba(255, 180, 100, 0.2), 0 0 20px rgba(255, 150, 80, 0.1); }
+      50% { text-shadow: 0 2px 16px rgba(255, 200, 130, 0.4), 0 0 30px rgba(255, 180, 100, 0.2); }
+    }
+    @keyframes heart-beat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #ffe9c0;
+      text-shadow: 0 4px 0 #7a4f2e, 0 8px 20px rgba(0,0,0,0.5);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    h1 span {
+      background: rgba(0,0,0,0.25);
+      font-size: 0.85rem;
+      padding: 4px 16px;
+      border-radius: 60px;
+      border: 1px solid rgba(255,215,0,0.25);
+      color: #ffdb8a;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(10, 20, 35, 0.6);
+      border-radius: 100px;
+      padding: 6px 14px 6px 18px;
+      margin: 6px 0 10px 0;
+      border: 1px solid rgba(255, 215, 0, 0.12);
+      backdrop-filter: blur(4px);
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .score-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffecce;
+      font-size: 0.9rem;
+      font-weight: 500;
+      flex-wrap: wrap;
+    }
+    .score-area i { font-style: normal; font-size: 1.2rem; }
+    .score-number {
+      background: #f5c542;
+      color: #1a2a3a;
+      padding: 2px 12px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      min-width: 30px;
+      text-align: center;
+      box-shadow: inset 0 -3px 0 #a07d34;
+    }
+    .bonus-display {
+      background: linear-gradient(145deg, #f5c542, #ffb347);
+      color: #1a2a3a;
+      padding: 2px 14px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      box-shadow: 0 2px 8px rgba(245, 197, 66, 0.3);
+      border: 1px solid rgba(255,215,0,0.3);
+      min-width: 80px;
+      text-align: center;
+    }
+    .timer-display {
+      background: rgba(0,0,0,0.4);
+      padding: 2px 14px;
+      border-radius: 60px;
+      font-size: 1.0rem;
+      font-weight: 700;
+      color: #ffdeae;
+      border: 1px solid rgba(255,215,0,0.15);
+      min-width: 70px;
+      text-align: center;
+    }
+    .timer-display.warning { color: #ff9a76; border-color: #ff9a76; }
+    .timer-display.danger { color: #ff6b6b; border-color: #ff6b6b; animation: pulse-timer 0.8s infinite; }
+    @keyframes pulse-timer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .level-badge {
+      background: #3a4a6a;
+      color: #ffecce;
+      padding: 3px 14px;
+      border-radius: 60px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid rgba(255,215,0,0.2);
+    }
+    .controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      background: #ffb882;
+      border: none;
+      color: #1d2b3a;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 60px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #8f5a3a, 0 4px 12px rgba(0,0,0,0.3);
+      transition: 0.06s linear;
+      font-family: inherit;
+      touch-action: manipulation;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: 0 0px 0 #8f5a3a; }
+    .btn-level {
+      background: #7a9eb3;
+      box-shadow: 0 4px 0 #4a6a7a;
+      color: #fff;
+    }
+    .btn-level.active {
+      background: #f5c542;
+      box-shadow: 0 4px 0 #a07d34;
+      color: #1a2a3a;
+    }
+    .btn-level:active { box-shadow: 0 0px 0 #4a6a7a; }
+    .btn-next {
+      background: #6fcf97;
+      box-shadow: 0 4px 0 #3a8a5a;
+      color: #1a2a3a;
+      padding: 4px 18px;
+      font-size: 0.85rem;
+    }
+    .btn-next:active { box-shadow: 0 0px 0 #3a8a5a; }
+    .btn-next:disabled {
+      opacity: 0.4;
+      transform: translateY(4px);
+      box-shadow: 0 0px 0 #3a8a5a;
+      pointer-events: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 10px 0 10px;
+    }
+    .card {
+      aspect-ratio: 1 / 1;
+      background: radial-gradient(circle at 30% 30%, #fceacb, #dbbd94);
+      border-radius: 20px;
+      box-shadow: 0 6px 0 #7a5f40, 0 6px 16px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      font-weight: 600;
+      color: #1d2b3a;
+      transition: 0.08s linear;
+      cursor: pointer;
+      border: 2px solid #ffeac2;
+      touch-action: manipulation;
+      text-shadow: 2px 2px 0 rgba(255,255,200,0.2);
+      will-change: transform;
+    }
+    .card.matched {
+      background: radial-gradient(circle at 30% 30%, #b5d6b0, #6f9e7a);
+      box-shadow: 0 3px 0 #3a6240, 0 6px 16px rgba(0,30,0,0.4);
+      border-color: #c6f0b0;
+      color: #f5ffe0;
+      transform: scale(0.92);
+      cursor: default;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .card.flipped {
+      background: radial-gradient(circle at 30% 30%, #fff4e0, #f7dbb0);
+      box-shadow: 0 3px 0 #7a5f40, 0 6px 16px rgba(0,0,0,0.5);
+      transform: scale(0.95);
+    }
+    .card:active:not(.matched):not(.flipped) {
+      transform: scale(0.92);
+      box-shadow: 0 3px 0 #7a5f40;
+    }
+    .message-area {
+      text-align: center;
+      font-size: 1.0rem;
+      font-weight: 600;
+      color: #ffdeae;
+      min-height: 2.2rem;
+      padding: 5px 0;
+      background: rgba(0,0,0,0.2);
+      border-radius: 60px;
+      margin: 4px 0 4px;
+      border: 1px dashed rgba(255,215,150,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .footer-emoji {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      font-size: 1.2rem;
+      margin-top: 4px;
+      opacity: 0.4;
+    }
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 6px 0 4px;
+      flex-wrap: wrap;
+    }
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.3);
+      transition: 0.3s;
+    }
+    .step-dot.active {
+      background: #f5c542;
+      border-color: #f5c542;
+      color: #1a2a3a;
+      box-shadow: 0 0 16px rgba(245, 197, 66, 0.4);
+    }
+    .step-dot.completed {
+      background: #6fcf97;
+      border-color: #6fcf97;
+      color: #1a2a3a;
+      opacity: 0.7;
+    }
+    @media (max-width: 550px) {
+      .game-box { padding: 12px 8px 16px; border-radius: 36px; }
+      h1 { font-size: 1.3rem; }
+      .grid { gap: 6px; }
+      .card { font-size: 1.8rem; border-radius: 14px; }
+      .score-area { font-size: 0.7rem; }
+      .btn { font-size: 0.65rem; padding: 3px 8px; }
+      .top-bar { padding: 4px 8px; gap: 4px; }
+      .message-area { font-size: 0.85rem; min-height: 1.8rem; }
+      .timer-display { font-size: 0.8rem; min-width: 55px; padding: 2px 10px; }
+      .bonus-display { font-size: 0.75rem; min-width: 60px; padding: 2px 10px; }
+      .step-dot { width: 22px; height: 22px; font-size: 0.6rem; }
+      .credit { font-size: 0.8rem; padding: 4px 14px; }
+    }
+    @media (max-width: 400px) {
+      .grid { gap: 4px; }
+      .card { font-size: 1.4rem; border-radius: 10px; }
+    }
+  </style>
+</head>
+<body>
+<div class="game-wrapper">
+  <div class="game-box">
+    <h1>
+      🧠 5x5 Memory
+      <span id="levelLabel">beginner · Step 1/10</span>
+    </h1>
+
+    <div class="top-bar">
+      <div class="score-area">
+        <i>🏆</i> <span class="score-number" id="matchCount">0</span>
+        <span class="level-badge" id="levelBadge">⭐ 12 pairs</span>
+        <span class="bonus-display" id="bonusDisplay">💰 0</span>
+        <span class="timer-display" id="timerDisplay">⏱ 3:00</span>
+      </div>
+      <div class="controls">
+        <button class="btn btn-level active" data-level="beginner">🌱 Beginner</button>
+        <button class="btn btn-level" data-level="advanced">🚀 Advanced</button>
+        <button class="btn btn-level" data-level="expert">🔥 Expert</button>
+        <button class="btn" id="resetGameBtn">🔄 New</button>
+      </div>
+    </div>
+
+    <!-- Step indicators -->
+    <div class="step-indicator" id="stepIndicator"></div>
+
+    <!-- 5x5 grid -->
+    <div class="grid" id="cardGrid"></div>
+
+    <div class="message-area" id="messageDisplay">
+      <span>✨ tap a card to begin</span>
+      <span id="levelProgress" style="font-size:0.8rem;opacity:0.7;">Step 1 of 10</span>
+    </div>
+
+    <!-- Next button at the bottom -->
+    <div style="display:flex; justify-content:center; margin-top:8px;">
+      <button class="btn btn-next" id="nextLevelBtn" disabled>➡️ Next Step</button>
+    </div>
+
+    <div class="footer-emoji">🐼 🐧 🦊 🌟</div>
+  </div>
+
+  <!-- Credit at the bottom -->
+  <div class="credit">
+    <span class="heart">💖</span> Developed by <strong>Demessie Yimer</strong> <span class="heart">💖</span>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----- 10 LEVELS OF EMOJIS for each difficulty -----
+    const LEVEL_SETS = {
+      beginner: {
+        label: 'beginner',
+        timeLimit: 180, // 3 minutes
+        levels: [
+          ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮'],
+          ['🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🐺'],
+          ['🐗', '🐴', '🦄', '🐝', '🐞', '🦋', '🐙', '🦑', '🐬', '🐳', '🐋', '🐊'],
+          ['🦕', '🦖', '🐉', '🐲', '🌵', '🎄', '🌲', '🌳', '🌴', '🌱', '🌿', '☘️'],
+          ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍑', '🍒'],
+          ['🌽', '🥕', '🥦', '🍅', '🫑', '🌶️', '🥒', '🥬', '🧄', '🧅', '🍄', '🥜'],
+          ['🍞', '🧀', '🥚', '🍳', '🥞', '🧇', '🥓', '🍔', '🌭', '🍕', '🥪', '🌮'],
+          ['🍣', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🍢', '🍡', '🍧', '🍨', '🍦'],
+          ['🎂', '🧁', '🍰', '🍫', '🍬', '🍭', '🍮', '🍩', '🍪', '☕', '🧃', '🥤'],
+          ['⚽', '🏀', '⚾', '🎾', '🏐', '🏉', '🎱', '🏓', '🏸', '🏒', '🥌', '🎳']
+        ],
+        bonus: '⭐'
+      },
+      advanced: {
+        label: 'advanced',
+        timeLimit: 240, // 4 minutes
+        levels: [
+          ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚'],
+          ['🚛', '🚜', '🏍️', '🛵', '🚲', '🛴', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠'],
+          ['✈️', '🛩️', '🛫', '🛬', '🚀', '🛸', '🚁', '⛵', '🚤', '🛳️', '⛴️', '🚢'],
+          ['🛶', '🚣', '🏊', '🧘', '🏋️', '🤸', '⛹️', '🏌️', '🏇', '🚴', '🚵', '🏄'],
+          ['🎵', '🎶', '🎹', '🎸', '🎺', '🎻', '🥁', '🎷', '🪗', '🎤', '🎧', '🎼'],
+          ['🎬', '🎭', '🎨', '🎪', '🎟️', '🎫', '🎖️', '🏆', '🏅', '🥇', '🥈', '🥉'],
+          ['💎', '🔮', '🧿', '📿', '💍', '👑', '🎩', '🧢', '⛑️', '💼', '👜', '👝'],
+          ['👟', '🥾', '🥿', '👠', '👡', '🩰', '🧦', '🧤', '🧣', '👗', '👘', '🥻'],
+          ['🪞', '🪟', '🪑', '🛋️', '🛏️', '🪴', '🧹', '🪠', '🧺', '🧻', '🪣', '🧼'],
+          ['🔦', '🪔', '🕯️', '🧯', '🔑', '🗝️', '🧭', '🧲', '⚗️', '🧪', '🧫', '🧬']
+        ],
+        bonus: '🌟'
+      },
+      expert: {
+        label: 'expert',
+        timeLimit: 300, // 5 minutes
+        levels: [
+          ['⚡', '🔥', '💎', '🌀', '🌊', '🌈', '☄️', '⭐', '🌙', '☀️', '🪐', '🌍'],
+          ['🌌', '🌠', '🌃', '🌅', '🌄', '🏔️', '🗻', '🌋', '🏜️', '🏝️', '🏖️', '🌊'],
+          ['🌪️', '🌩️', '⛈️', '🌨️', '❄️', '🌬️', '💨', '🌫️', '☁️', '⛅', '🌤️', '🌦️'],
+          ['🪐', '🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘', '🌙', '🌎', '🌏'],
+          ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'],
+          ['🔺', '🔻', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔴', '🟠'],
+          ['🀄', '🎴', '🃏', '♠️', '♥️', '♦️', '♣️', '♟️', '🪄', '🧙', '🧝', '🧛'],
+          ['🧟', '🧚', '🧜', '🧞', '🧌', '🐉', '🐲', '🦄', '🦋', '🐞', '🐝', '🪲'],
+          ['🪷', '🌺', '🌸', '🌼', '🌻', '🌹', '🌷', '🌱', '🌿', '☘️', '🍀', '🌳'],
+          ['🎯', '🎲', '🎳', '🎮', '🕹️', '♟️', '🎱', '🏓', '🏸', '🥌', '🎣', '🎽']
+        ],
+        bonus: '✨'
+      }
+    };
+
+    // ----- state -----
+    let currentDifficulty = 'beginner';
+    let currentLevelIndex = 0;
+    let cards = [];
+    let cardElements = [];
+    let flippedIndices = [];
+    let matchedPairs = 0;
+    let totalPairs = 12;
+    let lockBoard = false;
+    let timeoutId = null;
+    let gameCompleted = false;
+    let totalBonusPoints = 0;
+    let levelStartTime = 0;
+
+    // Timer state
+    let timerInterval = null;
+    let timeRemaining = 180;
+    let timerRunning = false;
+
+    const grid = document.getElementById('cardGrid');
+    const matchDisplay = document.getElementById('matchCount');
+    const messageEl = document.getElementById('messageDisplay');
+    const levelLabel = document.getElementById('levelLabel');
+    const levelBadge = document.getElementById('levelBadge');
+    const levelProgress = document.getElementById('levelProgress');
+    const nextBtn = document.getElementById('nextLevelBtn');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const bonusDisplay = document.getElementById('bonusDisplay');
+    const stepIndicator = document.getElementById('stepIndicator');
+
+    // ----- shuffle array -----
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // ----- reset a card to '?' -----
+    function resetCardToBack(card) {
+      card.textContent = '?';
+      card.style.color = '#7a5f40';
+      card.style.textShadow = '2px 2px 0 #b5956a';
+      card.classList.remove('flipped');
+      card.style.background = '';
+      card.style.boxShadow = '';
+      card.style.transform = '';
+    }
+
+    // ----- get current level emojis -----
+    function getLevelEmojis(difficulty, levelIdx) {
+      const set = LEVEL_SETS[difficulty];
+      if (!set) return [];
+      const levels = set.levels;
+      if (levelIdx >= levels.length) return levels[levels.length - 1];
+      return levels[levelIdx];
+    }
+
+    // ----- calculate bonus points based on time remaining -----
+    function calculateBonusPoints(timeUsed, timeLimit) {
+      if (timeUsed <= 60) {
+        return 100000;
+      } else if (timeUsed <= 90) {
+        return 50000;
+      } else if (timeUsed <= 120) {
+        return 25000;
+      } else if (timeUsed <= 150) {
+        return 10000;
+      } else if (timeUsed <= 180) {
+        return 5000;
+      } else {
+        return 1000;
+      }
+    }
+
+    // ----- update step indicators -----
+    function updateStepIndicators(currentStep, totalSteps) {
+      stepIndicator.innerHTML = '';
+      for (let i = 0; i < totalSteps; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'step-dot';
+        dot.textContent = i + 1;
+        if (i < currentStep) {
+          dot.classList.add('completed');
+        } else if (i === currentStep) {
+          dot.classList.add('active');
+        }
+        stepIndicator.appendChild(dot);
+      }
+    }
+
+    // ----- Timer functions -----
+    function startTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      const set = LEVEL_SETS[currentDifficulty];
+      timeRemaining = set.timeLimit;
+      levelStartTime = Date.now();
+      timerRunning = true;
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          timerRunning = false;
+          lockBoard = true;
+          messageEl.innerHTML = `<span>⏰ TIME'S UP! 😅</span><span style="font-size:0.8rem;opacity:0.7;">Press New to try again</span>`;
+          document.querySelectorAll('.card:not(.matched)').forEach(c => {
+            c.style.pointerEvents = 'none';
+          });
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      timerRunning = false;
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeRemaining / 60);
+      const secs = timeRemaining % 60;
+      timerDisplay.textContent = `⏱ ${mins}:${secs.toString().padStart(2, '0')}`;
+      timerDisplay.classList.remove('warning', 'danger');
+      if (timeRemaining <= 30) timerDisplay.classList.add('danger');
+      else if (timeRemaining <= 60) timerDisplay.classList.add('warning');
+    }
+
+    function resetTimer() {
+      stopTimer();
+      const set = LEVEL_SETS[currentDifficulty];
+      timeRemaining = set.timeLimit;
+      updateTimerDisplay();
+      timerDisplay.classList.remove('warning', 'danger');
+    }
+
+    // ----- init game with level -----
+    function initGame(difficulty, levelIdx) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      stopTimer();
+      resetTimer();
+
+      flippedIndices = [];
+      matchedPairs = 0;
+      lockBoard = false;
+      gameCompleted = false;
+      nextBtn.disabled = true;
+      matchDisplay.textContent = '0';
+
+      const set = LEVEL_SETS[difficulty];
+      if (!set) return;
+      const emojis = getLevelEmojis(difficulty, levelIdx);
+      if (!emojis || emojis.length === 0) return;
+
+      currentDifficulty = difficulty;
+      currentLevelIndex = levelIdx;
+      totalPairs = emojis.length;
+
+      levelLabel.textContent = `${set.label} · Step ${levelIdx+1}/10`;
+      levelBadge.textContent = `⭐ ${totalPairs} pairs`;
+      levelProgress.textContent = `Step ${levelIdx+1} of 10`;
+      updateStepIndicators(levelIdx, 10);
+
+      const deck = [];
+      for (let i = 0; i < emojis.length; i++) {
+        deck.push({ emoji: emojis[i], id: i, isBonus: false });
+        deck.push({ emoji: emojis[i], id: i, isBonus: false });
+      }
+      deck.push({ emoji: set.bonus, id: -1, isBonus: true });
+
+      cards = shuffleArray(deck);
+
+      grid.innerHTML = '';
+      cardElements = [];
+      let bonusMatched = false;
+      for (let i = 0; i < cards.length; i++) {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        cardDiv.dataset.index = i;
+        cardDiv.dataset.id = cards[i].id;
+        cardDiv.dataset.emoji = cards[i].emoji;
+        cardDiv.dataset.isBonus = cards[i].isBonus ? 'true' : 'false';
+
+        if (cards[i].isBonus) {
+          cardDiv.textContent = cards[i].emoji;
+          cardDiv.style.color = '#1d2b3a';
+          cardDiv.style.textShadow = 'none';
+          cardDiv.classList.add('matched', 'flipped');
+          cardDiv.style.pointerEvents = 'none';
+          bonusMatched = true;
+        } else {
+          cardDiv.textContent = '?';
+          cardDiv.style.color = '#7a5f40';
+          cardDiv.style.textShadow = '2px 2px 0 #b5956a';
+          cardDiv.addEventListener('click', cardClickHandler);
+        }
+        grid.appendChild(cardDiv);
+        cardElements.push(cardDiv);
+      }
+      if (bonusMatched) {
+        matchedPairs = 1;
+        matchDisplay.textContent = matchedPairs;
+      }
+      messageEl.innerHTML = `<span>✨ find the pairs!</span><span style="font-size:0.8rem;opacity:0.7;">Step ${levelIdx+1} of 10</span>`;
+      updateCardFontSize();
+
+      startTimer();
+    }
+
+    // ----- handle card click -----
+    function cardClickHandler(e) {
+      const card = e.currentTarget;
+      const index = parseInt(card.dataset.index);
+
+      if (lockBoard) return;
+      if (card.classList.contains('matched')) return;
+      if (card.classList.contains('flipped')) return;
+      if (card.dataset.isBonus === 'true') return;
+
+      flipCard(card);
+      flippedIndices.push(index);
+
+      if (flippedIndices.length === 2) {
+        lockBoard = true;
+        const idx1 = flippedIndices[0];
+        const idx2 = flippedIndices[1];
+        const card1 = cardElements[idx1];
+        const card2 = cardElements[idx2];
+        const id1 = cards[idx1].id;
+        const id2 = cards[idx2].id;
+
+        if (id1 === id2) {
+          card1.classList.add('matched');
+          card2.classList.add('matched');
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+          matchedPairs++;
+          matchDisplay.textContent = matchedPairs;
+          messageEl.innerHTML = `<span>🎉 Good job! +1 pair!</span><span style="font-size:0.8rem;opacity:0.7;">Step ${currentLevelIndex+1} of 10</span>`;
+          flippedIndices = [];
+          lockBoard = false;
+
+          if (matchedPairs === totalPairs) {
+            gameCompleted = true;
+            stopTimer();
+            
+            const set = LEVEL_SETS[currentDifficulty];
+            const timeUsed = set.timeLimit - timeRemaining;
+            const bonusPoints = calculateBonusPoints(timeUsed, set.timeLimit);
+            totalBonusPoints += bonusPoints;
+            bonusDisplay.textContent = `💰 ${totalBonusPoints.toLocaleString()}`;
+            
+            nextBtn.disabled = false;
+            // Update step indicator to show completion
+            updateStepIndicators(currentLevelIndex + 1, 10);
+            messageEl.innerHTML = `<span>🏆 STEP COMPLETE! 🌟 +${bonusPoints.toLocaleString()} bonus!</span><span style="font-size:0.8rem;opacity:0.7;">Click NEXT for more!</span>`;
+          }
+        } else {
+          messageEl.innerHTML = `<span>😅 not a pair, try again!</span><span style="font-size:0.8rem;opacity:0.7;">Step ${currentLevelIndex+1} of 10</span>`;
+          timeoutId = setTimeout(() => {
+            resetCardToBack(card1);
+            resetCardToBack(card2);
+            flippedIndices = [];
+            lockBoard = false;
+            timeoutId = null;
+            if (!gameCompleted && matchedPairs < totalPairs) {
+              messageEl.innerHTML = `<span>👀 keep going!</span><span style="font-size:0.8rem;opacity:0.7;">Step ${currentLevelIndex+1} of 10</span>`;
+            }
+          }, 700);
+        }
+      } else {
+        messageEl.innerHTML = `<span>👆 pick the matching one!</span><span style="font-size:0.8rem;opacity:0.7;">Step ${currentLevelIndex+1} of 10</span>`;
+      }
+    }
+
+    // ----- flip a card -----
+    function flipCard(card) {
+      const index = parseInt(card.dataset.index);
+      const emoji = cards[index].emoji;
+      card.textContent = emoji;
+      card.style.color = '#1d2b3a';
+      card.style.textShadow = 'none';
+      card.classList.add('flipped');
+    }
+
+    // ----- next level -----
+    function goToNextLevel() {
+      if (!gameCompleted) return;
+      const nextIdx = currentLevelIndex + 1;
+      if (nextIdx >= 10) {
+        messageEl.innerHTML = `<span>🎊 ALL 10 STEPS COMPLETE! 🎊</span><span style="font-size:0.8rem;opacity:0.7;">Total Bonus: ${totalBonusPoints.toLocaleString()}</span>`;
+        nextBtn.disabled = true;
+        return;
+      }
+      initGame(currentDifficulty, nextIdx);
+    }
+
+    // ----- adjust font size -----
+    function updateCardFontSize() {
+      const cardsNode = document.querySelectorAll('.card');
+      const gridWidth = grid.offsetWidth || 500;
+      const cardSize = (gridWidth - 10 * 4) / 5;
+      let fontSize = '2.4rem';
+      if (cardSize < 70) fontSize = '1.8rem';
+      if (cardSize < 60) fontSize = '1.4rem';
+      if (cardSize < 50) fontSize = '1.0rem';
+      cardsNode.forEach(c => c.style.fontSize = fontSize);
+    }
+
+    // ----- level switching -----
+    function setDifficulty(difficulty) {
+      document.querySelectorAll('.btn-level').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.btn-level[data-level="${difficulty}"]`).classList.add('active');
+      currentLevelIndex = 0;
+      totalBonusPoints = 0;
+      bonusDisplay.textContent = '💰 0';
+      initGame(difficulty, 0);
+    }
+
+    // ----- event listeners -----
+    document.querySelectorAll('.btn-level').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const difficulty = this.dataset.level;
+        setDifficulty(difficulty);
+      });
+    });
+
+    document.getElementById('resetGameBtn').addEventListener('click', function() {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      initGame(currentDifficulty, currentLevelIndex);
+    });
+
+    nextBtn.addEventListener('click', goToNextLevel);
+
+    // ----- resize -----
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(updateCardFontSize, 200);
+    });
+
+    // ----- start! -----
+    initGame('beginner', 0);
+    setTimeout(updateCardFontSize, 50);
+    setTimeout(updateCardFontSize, 300);
+
+    // prevent double-tap zoom
+    document.querySelectorAll('.card, .btn').forEach(el => {
+      el.addEventListener('touchstart', (e) => {}, { passive: true });
+    });
+
+  })();
+</script>
+</body>
+</html>
